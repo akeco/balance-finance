@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Category table
+model Category {
+  id        Int          @id @default(autoincrement())
+  name      String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @default(now())
+  subjects  Subject[]
+}
+
+// Subject table
+model Subject {
+  id           Int       @id @default(autoincrement())
+  name         String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now())
+  months       Month[]
+  category     Category  @relation(fields: [category_id], references: [id])
+  category_id  Int       @unique
+}
+
+// Month table
+model Month {
+  id           Int       @id @default(autoincrement())
+  date         DateTime
+  transactions Transaction[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now())
+  subject      Subject   @relation(fields: [subject_id], references: [id])
+  subject_id   Int       @unique
+}
+
+// Transaction table
+model Transaction {
+  id           Int       @id @default(autoincrement())
+  description  String
+  balance      Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now())
+  month        Month     @relation(fields: [month_id], references: [id])
+  month_id     Int       @unique
+}

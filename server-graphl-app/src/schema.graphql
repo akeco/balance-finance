@@ -1,0 +1,46 @@
+type TotalType {
+  date: Float!
+  balance: Float!
+}
+
+type Category {
+  id: ID!
+  name: String!
+  createdAt: Float!
+  updatedAt: Float!
+  total: [TotalType]
+  subjects: [Subject]
+}
+
+type Subject {
+  id: ID!
+  name: String!
+  createdAt: Float!
+  updatedAt: Float!
+  months: [Month]
+  category: Category!
+}
+
+type Month {
+  id: ID!
+  date: Float!
+  createdAt: Float!
+  updatedAt: Float!
+  transactions: [Transaction]
+  total: Float!
+  subject: Subject!
+}
+
+type Transaction {
+  id: ID!
+  balance: Float!
+  createdAt: Float!
+  updatedAt: Float!
+}
+
+type Query {
+  categories: [Category!]!
+  subjects: [Subject!]!
+  months: [Month!]!
+  transactions: [Transaction!]!
+}

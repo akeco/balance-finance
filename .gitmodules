@@ -1,0 +1,7 @@
+[submodule "client-app"]
+	path = client-app
+	url = ../client-app
+
+[submodule "server-app"]
+	path = server-app
+	url = ../server-app
