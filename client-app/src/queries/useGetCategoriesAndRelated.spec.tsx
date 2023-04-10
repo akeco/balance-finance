@@ -1,6 +1,7 @@
+import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react-hooks';
-import { useGetCategories, GET_CATEGORIES } from './useGetCategories';
+import { useGetCategoriesAndRelated, GET_CATEGORIES } from './useGetCategoriesAndRelated';
 import { MockedProvider, MockedProviderProps } from '@apollo/client/testing';
 
 describe('useGetCategories', () => {
@@ -33,6 +34,11 @@ describe('useGetCategories', () => {
     },
   ];
 
+  const totalMock = [
+    { date: '2022-01-01', balance: 23343.34 },
+    { date: '2022-01-02', balance: 11232.32 },
+  ];
+
   const mocks = [
     {
       request: {
@@ -41,6 +47,8 @@ describe('useGetCategories', () => {
       result: {
         data: {
           categories: categoriesMock,
+          grossProfit: totalMock,
+          netIncome: totalMock,
         },
       },
     },
@@ -49,7 +57,7 @@ describe('useGetCategories', () => {
   const wrapper: React.FC<MockedProviderProps> = ({ children }) => <MockedProvider mocks={mocks}>{children}</MockedProvider>;
 
   it('should return loading initially', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => useGetCategories(), {
+    const { result, waitForNextUpdate } = renderHook(() => useGetCategoriesAndRelated(), {
       wrapper,
     });
 
@@ -71,7 +79,7 @@ describe('useGetCategories', () => {
       </MockedProvider>
     );
 
-    const { result, waitForNextUpdate } = renderHook(() => useGetCategories(), {
+    const { result, waitForNextUpdate } = renderHook(() => useGetCategoriesAndRelated(), {
       wrapper: errorWrapper,
     });
 
@@ -82,7 +90,7 @@ describe('useGetCategories', () => {
   });
 
   it('should return categories if query succeeds', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => useGetCategories(), {
+    const { result, waitForNextUpdate } = renderHook(() => useGetCategoriesAndRelated(), {
       wrapper,
     });
 

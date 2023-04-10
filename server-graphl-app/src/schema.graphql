@@ -40,7 +40,9 @@ type Transaction {
 
 type Query {
   categories: [Category!]!
+  grossProfit: [TotalType!]
+  netIncome: [TotalType!]
   subjects: [Subject!]!
   months: [Month!]!
-  transactions: [Transaction!]!
+  transactions: [Transaction!]
 }

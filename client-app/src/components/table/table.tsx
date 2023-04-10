@@ -18,6 +18,8 @@ import { FixedCell, FlexBox, StyledCell } from './styled-components';
 
 type TableProps = {
   categories: Category[];
+  grossProfit: Total[];
+  netIncome: Total[];
 };
 
 type TableRowProps = {
@@ -43,19 +45,19 @@ const TableRow = ({ category }: TableRowProps) => {
                 }}
               />
             </IconButton>
-            <Typography variant="body2">{category.name}</Typography>
+            {category.name}
           </FlexBox>
         </FixedCell>
         {category?.total?.map((item: Total) => (
           <StyledCell key={item.date} align="right">
-            <Typography variant="body2">{item.balance}</Typography>
+            {item.balance}
           </StyledCell>
         ))}
       </MuiTableRow>
 
       {expandSubjects &&
         category.subjects.map((subject) => (
-          <Fade in={expandSubjects}>
+          <Fade key={subject.id} in={expandSubjects}>
             <MuiTableRow key={subject.id}>
               <FixedCell>
                 <Typography
@@ -69,7 +71,7 @@ const TableRow = ({ category }: TableRowProps) => {
               </FixedCell>
               {subject?.months?.map((month) => (
                 <StyledCell key={month.id} align="right">
-                  <Typography variant="body2">{month.total}</Typography>
+                  {month.total}
                 </StyledCell>
               ))}
             </MuiTableRow>
@@ -79,7 +81,22 @@ const TableRow = ({ category }: TableRowProps) => {
   );
 };
 
-export const Table = ({ categories }: TableProps) => {
+export const Table = ({ categories, grossProfit, netIncome }: TableProps) => {
+  const renderTotalRow = (label: string, values: Total[]) => {
+    return (
+      <MuiTableRow>
+        <FixedCell active="true" sx={{ paddingLeft: 3.5 }}>
+          {label}
+        </FixedCell>
+        {values.map((item) => (
+          <StyledCell active="true" key={item.date} align="right">
+            {item.balance}
+          </StyledCell>
+        ))}
+      </MuiTableRow>
+    );
+  };
+
   return (
     <TableContainer component={Paper}>
       <MuiTable sx={{ minWidth: 650 }} size="small">
@@ -90,17 +107,20 @@ export const Table = ({ categories }: TableProps) => {
             </FixedCell>
             {categories[0]?.subjects[0].months?.map((item: Month) => (
               <StyledCell key={item.id} align="right">
-                <Typography variant="body2">
-                  <strong>{dayjs(item.date).format('MMM YYYY')}</strong>
-                </Typography>
+                <strong>{dayjs(item.date).format('MMM YYYY')}</strong>
               </StyledCell>
             ))}
           </MuiTableRow>
         </TableHead>
         <TableBody>
-          {categories.map((category) => (
-            <TableRow category={category} />
+          {categories.slice(0, 3).map((category) => (
+            <TableRow key={category.id} category={category} />
           ))}
+          {renderTotalRow('Gross Profit', grossProfit)}
+          {categories.slice(3).map((category) => (
+            <TableRow key={category.id} category={category} />
+          ))}
+          {renderTotalRow('Net Income', netIncome)}
         </TableBody>
       </MuiTable>
     </TableContainer>

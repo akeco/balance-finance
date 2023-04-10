@@ -1,17 +1,18 @@
 import { Table } from '@/components/table/table';
 import { CircularProgress, Box } from '@mui/material';
-import { useGetCategories } from '@/queries/useGetCategories';
+import { useGetCategoriesAndRelated } from '@/queries/useGetCategoriesAndRelated';
+import { CenteredBox } from '@/styles/styled-components';
 
 const App = () => {
-  const { loading, categories } = useGetCategories();
+  const { loading, categories, grossProfit, netIncome } = useGetCategoriesAndRelated();
 
   if (loading)
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100vw', height: '100vh' }}>
+      <CenteredBox>
         <CircularProgress />
-      </Box>
+      </CenteredBox>
     );
-  return <Table categories={categories} />;
+  return <Table categories={categories} grossProfit={grossProfit} netIncome={netIncome} />;
 };
 
 export default App;

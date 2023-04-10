@@ -1,12 +1,17 @@
 import { styled } from '@mui/material/styles';
-import { TableCell, Box } from '@mui/material';
+import { TableCell, Box, TableCellProps } from '@mui/material';
 
-export const StyledCell = styled(TableCell)(({ theme }) => ({
-  backgroundColor: theme.palette.action.hover,
+interface StyledCellProps extends TableCellProps {
+  active?: 'true';
+}
+
+export const StyledCell = styled(TableCell)<StyledCellProps>(({ theme, active }) => ({
+  backgroundColor: active === 'true' ? theme.palette.action.focus : theme.palette.action.hover,
 }));
 
-export const FixedCell = styled(TableCell)(() => ({
+export const FixedCell = styled(TableCell)<StyledCellProps>(({ theme, active }) => ({
   width: 250,
+  backgroundColor: active === 'true' ? theme.palette.action.focus : '',
 }));
 
 export const FlexBox = styled(Box)(({ theme }) => ({
