@@ -3,5 +3,5 @@
 	url = ../client-app
 
 [submodule "server-app"]
-	path = server-app
+	path = server-graphql-app
 	url = ../server-app
