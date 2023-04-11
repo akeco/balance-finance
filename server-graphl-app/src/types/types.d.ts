@@ -4,6 +4,7 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -38,10 +39,15 @@ export type Query = {
   __typename?: 'Query';
   categories: Array<Category>;
   grossProfit?: Maybe<Array<TotalType>>;
-  months: Array<Month>;
   netIncome?: Maybe<Array<TotalType>>;
-  subjects: Array<Subject>;
   transactions?: Maybe<Array<Transaction>>;
+};
+
+
+export type QueryTransactionsArgs = {
+  categoryId: Scalars['String'];
+  monthId: Scalars['String'];
+  subjectId: Scalars['String'];
 };
 
 export type Subject = {
@@ -63,7 +69,9 @@ export type TotalType = {
 export type Transaction = {
   __typename?: 'Transaction';
   balance: Scalars['Float'];
+  company: Scalars['String'];
   createdAt: Scalars['Float'];
+  description: Scalars['String'];
   id: Scalars['ID'];
   updatedAt: Scalars['Float'];
 };
@@ -189,10 +197,8 @@ export type MonthResolvers<ContextType = any, ParentType extends ResolversParent
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   categories?: Resolver<Array<ResolversTypes['Category']>, ParentType, ContextType>;
   grossProfit?: Resolver<Maybe<Array<ResolversTypes['TotalType']>>, ParentType, ContextType>;
-  months?: Resolver<Array<ResolversTypes['Month']>, ParentType, ContextType>;
   netIncome?: Resolver<Maybe<Array<ResolversTypes['TotalType']>>, ParentType, ContextType>;
-  subjects?: Resolver<Array<ResolversTypes['Subject']>, ParentType, ContextType>;
-  transactions?: Resolver<Maybe<Array<ResolversTypes['Transaction']>>, ParentType, ContextType>;
+  transactions?: Resolver<Maybe<Array<ResolversTypes['Transaction']>>, ParentType, ContextType, RequireFields<QueryTransactionsArgs, 'categoryId' | 'monthId' | 'subjectId'>>;
 };
 
 export type SubjectResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subject'] = ResolversParentTypes['Subject']> = {
@@ -213,7 +219,9 @@ export type TotalTypeResolvers<ContextType = any, ParentType extends ResolversPa
 
 export type TransactionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Transaction'] = ResolversParentTypes['Transaction']> = {
   balance?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  company?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

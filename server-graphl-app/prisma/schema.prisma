@@ -44,6 +44,7 @@ model Month {
 // Transaction table
 model Transaction {
   id           Int       @id @default(autoincrement())
+  company      String
   description  String
   balance      Int
   createdAt    DateTime  @default(now())

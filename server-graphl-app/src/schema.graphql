@@ -33,6 +33,8 @@ type Month {
 
 type Transaction {
   id: ID!
+  company: String!
+  description: String!
   balance: Float!
   createdAt: Float!
   updatedAt: Float!
@@ -42,7 +44,5 @@ type Query {
   categories: [Category!]!
   grossProfit: [TotalType!]
   netIncome: [TotalType!]
-  subjects: [Subject!]!
-  months: [Month!]!
-  transactions: [Transaction!]
+  transactions(monthId: String!, subjectId: String!, categoryId: String!): [Transaction!]
 }

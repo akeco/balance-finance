@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { GroupByResult, groupBy } from '@/utils/groupBy';
 import { roundDecimals } from '@/utils/roundDecimals';
 
-type Transaction = { id: string; balance: number; createdAt: number; updatedAt: number };
+type Transaction = { id: string; balance: number; company: string; description: string; createdAt: number; updatedAt: number };
 type Month = { id: string; date: number; createdAt: number; updatedAt: number; transactions: Transaction[]; total: number; subject: Subject };
 type Subject = { id: string; name: string; createdAt: number; updatedAt: number; months: Month[]; category: Category };
 type Category = { id: string; name: string; createdAt: number; updatedAt: number; subjects: Subject[]; total?: Total[] };
@@ -16,7 +16,6 @@ const subjects = [
   ['Bank Charge & Fees', 'Legal Services', 'Taxes & Licenses', 'Office Supplies & Software'],
   ['Cost of Goods Sold', 'Cost of Goods Sold', 'Product Shipping'],
   ['Expense', 'Bank Charges & Fees', 'Legal Services', 'Office Supplies & Software', 'Taxes & Licences'],
-  [],
 ];
 
 const getTotalBalance = (groupedData: GroupByResult<Total>): { date: number; balance: number }[] => {
@@ -31,7 +30,9 @@ const generateTransaction = (): Transaction => {
   const id = faker.datatype.uuid();
   const createdAt = timestamp;
   const updatedAt = timestamp;
-  return { id, balance, createdAt, updatedAt };
+  const company = faker.company.name();
+  const description = faker.company.catchPhrase();
+  return { id, balance, company, description, createdAt, updatedAt };
 };
 
 export const categoriesData: Category[] = new Array(4).fill(null).map((_, i) => {
@@ -116,3 +117,10 @@ export const netIncome: Total[] = grossProfit.map((item, index) => ({
   date: item.date,
   balance: roundDecimals(item.balance - expensesTotal[index].balance) as number,
 }));
+
+export const getTransactions = (_, args: { monthId: string; subjectId: string; categoryId: string }) => {
+  const category = categoriesData.find((item) => item.id === args.categoryId);
+  const subject = category?.subjects.find((item) => item.id === args.subjectId);
+  const month = subject?.months.find((item) => item.id === args.monthId);
+  return month?.transactions ?? [];
+};

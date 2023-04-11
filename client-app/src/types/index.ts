@@ -27,6 +27,7 @@ export type Month = {
 } & CommonFields;
 
 export type Transaction = {
+  company: string;
   description: string;
   balance: number;
 } & CommonFields;

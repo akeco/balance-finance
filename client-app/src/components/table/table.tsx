@@ -1,32 +1,27 @@
 import { Category, Month, Total } from '@/types';
-import {
-  Table as MuiTable,
-  TableBody,
-  TableContainer,
-  TableHead,
-  TableRow as MuiTableRow,
-  Paper,
-  IconButton,
-  Fade,
-  Typography,
-  Box,
-} from '@mui/material';
+import { Table as MuiTable, TableBody, TableContainer, TableHead, TableRow as MuiTableRow, Paper, IconButton, Fade, Typography } from '@mui/material';
 import { ExpandMore } from '@mui/icons-material';
 import dayjs from 'dayjs';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { FixedCell, FlexBox, StyledCell } from './styled-components';
+import { SelectedField } from '@/App';
+
+type CommonProps = {
+  selectedField: SelectedField | undefined;
+  onSelectField: Dispatch<SetStateAction<SelectedField | undefined>>;
+};
 
 type TableProps = {
   categories: Category[];
   grossProfit: Total[];
   netIncome: Total[];
-};
+} & CommonProps;
 
 type TableRowProps = {
   category: Category;
-};
+} & CommonProps;
 
-const TableRow = ({ category }: TableRowProps) => {
+const TableRow = ({ category, selectedField, onSelectField }: TableRowProps) => {
   const [expandSubjects, setExpandSubjects] = useState(false);
 
   const onExpandToggle = () => setExpandSubjects(!expandSubjects);
@@ -70,7 +65,15 @@ const TableRow = ({ category }: TableRowProps) => {
                 </Typography>
               </FixedCell>
               {subject?.months?.map((month) => (
-                <StyledCell key={month.id} align="right">
+                <StyledCell
+                  key={month.id}
+                  cursor="pointer"
+                  selected={
+                    selectedField?.monthId === month.id && selectedField?.subjectId === subject.id && selectedField?.categoryId === category.id
+                  }
+                  align="right"
+                  onClick={() => onSelectField({ monthId: month.id, subjectId: subject.id, categoryId: category.id })}
+                >
                   {month.total}
                 </StyledCell>
               ))}
@@ -81,15 +84,15 @@ const TableRow = ({ category }: TableRowProps) => {
   );
 };
 
-export const Table = ({ categories, grossProfit, netIncome }: TableProps) => {
+export const Table = ({ categories, grossProfit, netIncome, selectedField, onSelectField }: TableProps) => {
   const renderTotalRow = (label: string, values: Total[]) => {
     return (
       <MuiTableRow>
-        <FixedCell active="true" sx={{ paddingLeft: 3.5 }}>
+        <FixedCell background="darken" sx={{ paddingLeft: 3.5 }}>
           {label}
         </FixedCell>
         {values.map((item) => (
-          <StyledCell active="true" key={item.date} align="right">
+          <StyledCell background="darken" key={item.date} align="right">
             {item.balance}
           </StyledCell>
         ))}
@@ -114,11 +117,11 @@ export const Table = ({ categories, grossProfit, netIncome }: TableProps) => {
         </TableHead>
         <TableBody>
           {categories.slice(0, 3).map((category) => (
-            <TableRow key={category.id} category={category} />
+            <TableRow key={category.id} category={category} selectedField={selectedField} onSelectField={onSelectField} />
           ))}
           {renderTotalRow('Gross Profit', grossProfit)}
           {categories.slice(3).map((category) => (
-            <TableRow key={category.id} category={category} />
+            <TableRow key={category.id} category={category} selectedField={selectedField} onSelectField={onSelectField} />
           ))}
           {renderTotalRow('Net Income', netIncome)}
         </TableBody>
