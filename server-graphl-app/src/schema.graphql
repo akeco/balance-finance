@@ -40,9 +40,25 @@ type Transaction {
   updatedAt: Float!
 }
 
+type CategoriesAndFinances {
+  categories: [Category!]!
+  grossProfit: [TotalType!]
+  netIncome: [TotalType!]
+}
+
 type Query {
   categories: [Category!]!
   grossProfit: [TotalType!]
   netIncome: [TotalType!]
   transactions(monthId: String!, subjectId: String!, categoryId: String!): [Transaction!]
+}
+
+type Mutation {
+  updateTransaction(monthId: String!, subjectId: String!, categoryId: String!, transactionId: String!): Boolean!
+}
+
+type Subscription {
+  categoryUpdated: CategoriesAndFinances!
+  grossProfitUpdated: [TotalType!]
+  netIncomeUpdated: [TotalType!]
 }

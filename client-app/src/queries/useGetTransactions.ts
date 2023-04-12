@@ -1,6 +1,7 @@
 import { SelectedField } from '@/App';
 import { Transaction } from '@/types';
 import { gql, useLazyQuery } from '@apollo/client';
+import { useEffect, useState } from 'react';
 
 export const GET_TRANSACTIONS = gql`
   query GetTransactions($monthId: String!, $subjectId: String!, $categoryId: String!) {
@@ -14,10 +15,21 @@ export const GET_TRANSACTIONS = gql`
   }
 `;
 
-type UseGetDataResult = [() => void, { loading: boolean; transactions: Transaction[] }];
+export type TransactionsResult = [() => void, { loading: boolean; transactions: Transaction[]; removeTransaction(id: string): void }];
 
-export const useGetTransactions = (selectedFields: SelectedField | undefined): UseGetDataResult => {
-  const [getTransactions, { loading, data }] = useLazyQuery(GET_TRANSACTIONS, { variables: selectedFields });
+export const useGetTransactions = (selectedFields: SelectedField | undefined): TransactionsResult => {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [getTransactions, { loading, data }] = useLazyQuery(GET_TRANSACTIONS, { variables: selectedFields, fetchPolicy: 'no-cache' });
 
-  return [getTransactions, { loading, transactions: data?.transactions ?? [] }];
+  useEffect(() => {
+    if (data?.transactions) {
+      setTransactions(data.transactions);
+    }
+  }, [data?.transactions]);
+
+  const removeTransaction = (transactionId: string) => {
+    setTransactions((transactions) => transactions.filter((item) => item.id !== transactionId));
+  };
+
+  return [getTransactions, { loading, transactions, removeTransaction }];
 };

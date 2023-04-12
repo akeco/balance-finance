@@ -14,6 +14,13 @@ export type Scalars = {
   Float: number;
 };
 
+export type CategoriesAndFinances = {
+  __typename?: 'CategoriesAndFinances';
+  categories: Array<Category>;
+  grossProfit?: Maybe<Array<TotalType>>;
+  netIncome?: Maybe<Array<TotalType>>;
+};
+
 export type Category = {
   __typename?: 'Category';
   createdAt: Scalars['Float'];
@@ -35,6 +42,18 @@ export type Month = {
   updatedAt: Scalars['Float'];
 };
 
+export type Mutation = {
+  __typename?: 'Mutation';
+  updateTransaction: Scalars['Boolean'];
+};
+
+export type MutationUpdateTransactionArgs = {
+  categoryId: Scalars['String'];
+  monthId: Scalars['String'];
+  subjectId: Scalars['String'];
+  transactionId: Scalars['String'];
+};
+
 export type Query = {
   __typename?: 'Query';
   categories: Array<Category>;
@@ -42,7 +61,6 @@ export type Query = {
   netIncome?: Maybe<Array<TotalType>>;
   transactions?: Maybe<Array<Transaction>>;
 };
-
 
 export type QueryTransactionsArgs = {
   categoryId: Scalars['String'];
@@ -58,6 +76,13 @@ export type Subject = {
   months?: Maybe<Array<Maybe<Month>>>;
   name: Scalars['String'];
   updatedAt: Scalars['Float'];
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  categoryUpdated: CategoriesAndFinances;
+  grossProfitUpdated?: Maybe<Array<TotalType>>;
+  netIncomeUpdated?: Maybe<Array<TotalType>>;
 };
 
 export type TotalType = {
@@ -76,35 +101,34 @@ export type Transaction = {
   updatedAt: Scalars['Float'];
 };
 
-
-
 export type ResolverTypeWrapper<T> = Promise<T> | T;
-
 
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
   resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
 };
-export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> = ResolverFn<TResult, TParent, TContext, TArgs> | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
+export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> =
+  | ResolverFn<TResult, TParent, TContext, TArgs>
+  | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
 
 export type ResolverFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => Promise<TResult> | TResult;
 
 export type SubscriptionSubscribeFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => AsyncIterable<TResult> | Promise<AsyncIterable<TResult>>;
 
 export type SubscriptionResolveFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => TResult | Promise<TResult>;
 
 export interface SubscriptionSubscriberObject<TResult, TKey extends string, TParent, TContext, TArgs> {
@@ -128,7 +152,7 @@ export type SubscriptionResolver<TResult, TKey extends string, TParent = {}, TCo
 export type TypeResolveFn<TTypes, TParent = {}, TContext = {}> = (
   parent: TParent,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => Maybe<TTypes> | Promise<Maybe<TTypes>>;
 
 export type IsTypeOfResolverFn<T = {}, TContext = {}> = (obj: T, context: TContext, info: GraphQLResolveInfo) => boolean | Promise<boolean>;
@@ -140,21 +164,22 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
   parent: TParent,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => TResult | Promise<TResult>;
-
-
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
+  CategoriesAndFinances: ResolverTypeWrapper<CategoriesAndFinances>;
   Category: ResolverTypeWrapper<Category>;
   Float: ResolverTypeWrapper<Scalars['Float']>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   Month: ResolverTypeWrapper<Month>;
+  Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']>;
   Subject: ResolverTypeWrapper<Subject>;
+  Subscription: ResolverTypeWrapper<{}>;
   TotalType: ResolverTypeWrapper<TotalType>;
   Transaction: ResolverTypeWrapper<Transaction>;
 };
@@ -162,15 +187,28 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Boolean: Scalars['Boolean'];
+  CategoriesAndFinances: CategoriesAndFinances;
   Category: Category;
   Float: Scalars['Float'];
   ID: Scalars['ID'];
   Month: Month;
+  Mutation: {};
   Query: {};
   String: Scalars['String'];
   Subject: Subject;
+  Subscription: {};
   TotalType: TotalType;
   Transaction: Transaction;
+};
+
+export type CategoriesAndFinancesResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['CategoriesAndFinances'] = ResolversParentTypes['CategoriesAndFinances'],
+> = {
+  categories?: Resolver<Array<ResolversTypes['Category']>, ParentType, ContextType>;
+  grossProfit?: Resolver<Maybe<Array<ResolversTypes['TotalType']>>, ParentType, ContextType>;
+  netIncome?: Resolver<Maybe<Array<ResolversTypes['TotalType']>>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type CategoryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Category'] = ResolversParentTypes['Category']> = {
@@ -194,11 +232,25 @@ export type MonthResolvers<ContextType = any, ParentType extends ResolversParent
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  updateTransaction?: Resolver<
+    ResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationUpdateTransactionArgs, 'categoryId' | 'monthId' | 'subjectId' | 'transactionId'>
+  >;
+};
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   categories?: Resolver<Array<ResolversTypes['Category']>, ParentType, ContextType>;
   grossProfit?: Resolver<Maybe<Array<ResolversTypes['TotalType']>>, ParentType, ContextType>;
   netIncome?: Resolver<Maybe<Array<ResolversTypes['TotalType']>>, ParentType, ContextType>;
-  transactions?: Resolver<Maybe<Array<ResolversTypes['Transaction']>>, ParentType, ContextType, RequireFields<QueryTransactionsArgs, 'categoryId' | 'monthId' | 'subjectId'>>;
+  transactions?: Resolver<
+    Maybe<Array<ResolversTypes['Transaction']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryTransactionsArgs, 'categoryId' | 'monthId' | 'subjectId'>
+  >;
 };
 
 export type SubjectResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subject'] = ResolversParentTypes['Subject']> = {
@@ -209,6 +261,15 @@ export type SubjectResolvers<ContextType = any, ParentType extends ResolversPare
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type SubscriptionResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription'],
+> = {
+  categoryUpdated?: SubscriptionResolver<ResolversTypes['CategoriesAndFinances'], 'categoryUpdated', ParentType, ContextType>;
+  grossProfitUpdated?: SubscriptionResolver<Maybe<Array<ResolversTypes['TotalType']>>, 'grossProfitUpdated', ParentType, ContextType>;
+  netIncomeUpdated?: SubscriptionResolver<Maybe<Array<ResolversTypes['TotalType']>>, 'netIncomeUpdated', ParentType, ContextType>;
 };
 
 export type TotalTypeResolvers<ContextType = any, ParentType extends ResolversParentTypes['TotalType'] = ResolversParentTypes['TotalType']> = {
@@ -228,11 +289,13 @@ export type TransactionResolvers<ContextType = any, ParentType extends Resolvers
 };
 
 export type Resolvers<ContextType = any> = {
+  CategoriesAndFinances?: CategoriesAndFinancesResolvers<ContextType>;
   Category?: CategoryResolvers<ContextType>;
   Month?: MonthResolvers<ContextType>;
+  Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Subject?: SubjectResolvers<ContextType>;
+  Subscription?: SubscriptionResolvers<ContextType>;
   TotalType?: TotalTypeResolvers<ContextType>;
   Transaction?: TransactionResolvers<ContextType>;
 };
-

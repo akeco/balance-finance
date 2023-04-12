@@ -1,7 +1,0 @@
-[submodule "client-app"]
-	path = client-app
-	url = ../client-app
-
-[submodule "server-app"]
-	path = server-graphql-app
-	url = ../server-app

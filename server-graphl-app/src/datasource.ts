@@ -2,12 +2,8 @@ import { faker } from '@faker-js/faker';
 import dayjs from 'dayjs';
 import { GroupByResult, groupBy } from '@/utils/groupBy';
 import { roundDecimals } from '@/utils/roundDecimals';
-
-type Transaction = { id: string; balance: number; company: string; description: string; createdAt: number; updatedAt: number };
-type Month = { id: string; date: number; createdAt: number; updatedAt: number; transactions: Transaction[]; total: number; subject: Subject };
-type Subject = { id: string; name: string; createdAt: number; updatedAt: number; months: Month[]; category: Category };
-type Category = { id: string; name: string; createdAt: number; updatedAt: number; subjects: Subject[]; total?: Total[] };
-type Total = { date: number; balance: number };
+import { Transaction, Category, Total, Month } from '@/types';
+import { TransactionArgs } from '@/types';
 
 const timestamp = new Date().getTime();
 const categoryNames = ['Banks', 'Income', 'Cost of Goods Sold', 'Expense'];
@@ -18,7 +14,7 @@ const subjects = [
   ['Expense', 'Bank Charges & Fees', 'Legal Services', 'Office Supplies & Software', 'Taxes & Licences'],
 ];
 
-const getTotalBalance = (groupedData: GroupByResult<Total>): { date: number; balance: number }[] => {
+export const getTotalBalance = (groupedData: GroupByResult<Total>): { date: number; balance: number }[] => {
   return Object.keys(groupedData).map((key) => {
     const balance: number = groupedData[key].reduce((total, item) => (total += item.balance), 0);
     return { date: Number(key), balance: roundDecimals(balance) as number };
@@ -35,7 +31,9 @@ const generateTransaction = (): Transaction => {
   return { id, balance, company, description, createdAt, updatedAt };
 };
 
-export const categoriesData: Category[] = new Array(4).fill(null).map((_, i) => {
+const getMonthTotal = (transactions: Transaction[]): number => roundDecimals(transactions.reduce((acc, curr) => acc + curr.balance, 0)) as number;
+
+let categoriesData: Category[] = new Array(4).fill(null).map((_, i) => {
   let categoryTotal: Total[] = [];
 
   return {
@@ -52,7 +50,7 @@ export const categoriesData: Category[] = new Array(4).fill(null).map((_, i) => 
         months: new Array(12).fill(null).map((_, k) => {
           const date = dayjs(`2022-${`${k + 1}`.length === 1 ? `0${k + 1}` : k + 1}-01`).valueOf();
           const transactions = new Array(10).fill(null).map(() => generateTransaction());
-          const monthTotal = roundDecimals(transactions.reduce((acc, curr) => acc + curr.balance, 0)) as number;
+          const monthTotal: number = getMonthTotal(transactions);
 
           categoryTotal.push({ date, balance: Number(monthTotal.toFixed(4)) });
           const groupedTotals: GroupByResult<Total> = groupBy(categoryTotal, (item: Total) => item.date.toString());
@@ -64,7 +62,7 @@ export const categoriesData: Category[] = new Array(4).fill(null).map((_, i) => 
             createdAt: timestamp,
             updatedAt: timestamp,
             transactions,
-            total: roundDecimals(monthTotal) as number,
+            total: monthTotal,
             subject: {
               id: faker.datatype.uuid(),
               name: faker.commerce.productName(),
@@ -94,33 +92,98 @@ export const categoriesData: Category[] = new Array(4).fill(null).map((_, i) => 
   };
 });
 
-const getTotalGroup = (category: Category): Total[] => {
-  return category.subjects
-    .map((item) => item.months.map((month) => month.transactions.map((transaction) => ({ date: month.date, balance: transaction.balance }))).flat())
-    .flat();
-};
+class DataProviderClass {
+  private data: Category[] = categoriesData;
 
-const groupedIncome: GroupByResult<Total> = groupBy(getTotalGroup(categoriesData[1]), (item) => item.date.toString());
-const groupedSOCGS: GroupByResult<Total> = groupBy(getTotalGroup(categoriesData[2]), (item) => item.date.toString());
-const groupedExpenses: GroupByResult<Total> = groupBy(getTotalGroup(categoriesData[3]), (item) => item.date.toString());
+  getData = (): Category[] => this.data;
 
-const incomeTotal: Total[] = getTotalBalance(groupedIncome);
-const COGSTotal: Total[] = getTotalBalance(groupedSOCGS);
-const expensesTotal: Total[] = getTotalBalance(groupedExpenses);
+  setData = (categories: Category[]) => (this.data = categories);
 
-export const grossProfit: Total[] = incomeTotal.map((item, index) => ({
-  date: item.date,
-  balance: roundDecimals(item.balance - COGSTotal[index].balance) as number,
-}));
+  findTransactionById = ({ monthId, transactionId }: Partial<TransactionArgs>): Transaction | undefined => {
+    let transaction: Transaction | undefined;
+    this.getData().forEach((item) => {
+      item.subjects.forEach((subject) => {
+        const month = subject.months.find((month) => month.id === monthId);
+        const foundTransaction = month?.transactions.find((item) => item.id === transactionId);
+        if (foundTransaction) transaction = foundTransaction;
+      });
+    });
+    return transaction;
+  };
 
-export const netIncome: Total[] = grossProfit.map((item, index) => ({
-  date: item.date,
-  balance: roundDecimals(item.balance - expensesTotal[index].balance) as number,
-}));
+  findMonthById = (monthId: string): Month | undefined => {
+    let month: Month | undefined;
+    this.getData().forEach((item) => {
+      item.subjects.forEach((subject) => {
+        const foundMonth = subject.months.find((month) => month.id === monthId);
+        if (foundMonth) month = foundMonth;
+      });
+    });
+    return month;
+  };
 
-export const getTransactions = (_, args: { monthId: string; subjectId: string; categoryId: string }) => {
-  const category = categoriesData.find((item) => item.id === args.categoryId);
-  const subject = category?.subjects.find((item) => item.id === args.subjectId);
-  const month = subject?.months.find((item) => item.id === args.monthId);
-  return month?.transactions ?? [];
-};
+  removeTransactionById = (transactionId: string) => {
+    let categories: Category[] = [...this.getData()];
+
+    categories.forEach((category) => {
+      let categoryTotal: Total[] = [];
+
+      category.subjects.forEach((subject) => {
+        subject.months.forEach((month) => {
+          month.transactions = month.transactions.map((transaction) => {
+            if (transaction.id === transactionId) {
+              return { ...transaction, balance: 0, company: '', description: '', updatedAt: new Date().getTime() };
+            }
+            return transaction;
+          });
+          const monthTotal: number = getMonthTotal(month.transactions);
+          month.total = monthTotal;
+
+          categoryTotal.push({ date: month.date, balance: Number(monthTotal.toFixed(4)) });
+          const groupedTotals: GroupByResult<Total> = groupBy(categoryTotal, (item: Total) => item.date.toString());
+          categoryTotal = getTotalBalance(groupedTotals);
+        });
+      });
+      category.total = categoryTotal;
+    });
+
+    this.setData(categories);
+  };
+
+  updateTransaction = ({ categoryId, monthId, subjectId, transactionId }: TransactionArgs) => {
+    const transaction: Transaction | undefined = this.findTransactionById({ monthId, transactionId });
+    const month: Month | undefined = this.findMonthById(monthId);
+
+    this.removeTransactionById(transactionId);
+    let categories: Category[] = [...this.getData()];
+
+    categories.forEach((category) => {
+      let categoryTotal: Total[] = [];
+
+      category.subjects.forEach((subject) => {
+        subject.months.forEach((monthItem) => {
+          if (
+            category.id === categoryId &&
+            subject.id === subjectId &&
+            dayjs(monthItem.date).isSame(dayjs(month?.date), 'year') &&
+            dayjs(monthItem.date).isSame(dayjs(month?.date), 'month')
+          ) {
+            monthItem.transactions.push(transaction!);
+          }
+          const monthTotal: number = getMonthTotal(monthItem.transactions);
+          monthItem.total = monthTotal;
+
+          categoryTotal.push({ date: monthItem.date, balance: Number(monthTotal.toFixed(4)) });
+          const groupedTotals: GroupByResult<Total> = groupBy(categoryTotal, (item: Total) => item.date.toString());
+          categoryTotal = getTotalBalance(groupedTotals);
+        });
+      });
+      category.total = categoryTotal;
+    });
+
+    this.setData(categories);
+    return this.getData();
+  };
+}
+
+export const DataProvider = new DataProviderClass();

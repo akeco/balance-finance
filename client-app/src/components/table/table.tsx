@@ -5,6 +5,8 @@ import dayjs from 'dayjs';
 import { Dispatch, SetStateAction, useState } from 'react';
 import { FixedCell, FlexBox, StyledCell } from './styled-components';
 import { SelectedField } from '@/App';
+import { Droppable } from 'react-beautiful-dnd';
+import { addZeroes } from '@/utils/addZeros';
 
 type CommonProps = {
   selectedField: SelectedField | undefined;
@@ -45,7 +47,7 @@ const TableRow = ({ category, selectedField, onSelectField }: TableRowProps) => 
         </FixedCell>
         {category?.total?.map((item: Total) => (
           <StyledCell key={item.date} align="right">
-            {item.balance}
+            {addZeroes(item.balance)}
           </StyledCell>
         ))}
       </MuiTableRow>
@@ -54,27 +56,32 @@ const TableRow = ({ category, selectedField, onSelectField }: TableRowProps) => 
         category.subjects.map((subject) => (
           <Fade key={subject.id} in={expandSubjects}>
             <MuiTableRow key={subject.id}>
-              <FixedCell>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    paddingLeft: '48px',
-                  }}
-                >
-                  {subject.name}
-                </Typography>
-              </FixedCell>
+              <Droppable droppableId={subject.id}>
+                {(provided) => (
+                  <FixedCell ref={provided.innerRef} {...provided.droppableProps}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        paddingLeft: '48px',
+                      }}
+                    >
+                      {subject.name}
+                      {provided.placeholder}
+                    </Typography>
+                  </FixedCell>
+                )}
+              </Droppable>
               {subject?.months?.map((month) => (
                 <StyledCell
                   key={month.id}
-                  cursor="pointer"
+                  cursor={!!month.total ? 'pointer' : undefined}
                   selected={
                     selectedField?.monthId === month.id && selectedField?.subjectId === subject.id && selectedField?.categoryId === category.id
                   }
                   align="right"
-                  onClick={() => onSelectField({ monthId: month.id, subjectId: subject.id, categoryId: category.id })}
+                  onClick={() => !!month.total && onSelectField({ monthId: month.id, subjectId: subject.id, categoryId: category.id })}
                 >
-                  {month.total}
+                  {addZeroes(month.total!)}
                 </StyledCell>
               ))}
             </MuiTableRow>
@@ -93,7 +100,7 @@ export const Table = ({ categories, grossProfit, netIncome, selectedField, onSel
         </FixedCell>
         {values.map((item) => (
           <StyledCell background="darken" key={item.date} align="right">
-            {item.balance}
+            {addZeroes(item.balance)}
           </StyledCell>
         ))}
       </MuiTableRow>
@@ -119,11 +126,11 @@ export const Table = ({ categories, grossProfit, netIncome, selectedField, onSel
           {categories.slice(0, 3).map((category) => (
             <TableRow key={category.id} category={category} selectedField={selectedField} onSelectField={onSelectField} />
           ))}
-          {renderTotalRow('Gross Profit', grossProfit)}
+          {grossProfit?.length > 0 && renderTotalRow('Gross Profit', grossProfit)}
           {categories.slice(3).map((category) => (
             <TableRow key={category.id} category={category} selectedField={selectedField} onSelectField={onSelectField} />
           ))}
-          {renderTotalRow('Net Income', netIncome)}
+          {netIncome?.length > 0 && renderTotalRow('Net Income', netIncome)}
         </TableBody>
       </MuiTable>
     </TableContainer>

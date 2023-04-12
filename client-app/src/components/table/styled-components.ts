@@ -14,7 +14,8 @@ export const StyledCell = styled(TableCell)<StyledCellProps>(({ theme, backgroun
 }));
 
 export const FixedCell = styled(TableCell)<StyledCellProps>(({ theme, background }) => ({
-  width: 250,
+  minWidth: 250,
+  maxWidth: 250,
   backgroundColor: background === 'darken' ? theme.palette.action.focus : '',
 }));
 
